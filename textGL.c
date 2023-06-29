@@ -23,7 +23,6 @@ int textGLInit(class *selfp, const char *filename) { // initialise values, must 
         printf("Error: could not open file %s\n", filename);
         return -1;
     }
-    glfwWindowHint(GLFW_SAMPLES, 4); // MSAA (Anti-Aliasing) with 4 samples (must be done before window is created (?))
 
     list_t *fontDataInit = list_init(); // these start as lists and become int arrays
     list_t *fontPointerInit = list_init();
@@ -231,6 +230,7 @@ void write(class *selfp, const unsigned int *text, int textLength, double x, dou
     size /= 175;
     y -= size * 70;
     turtlePenSize(30 * size);
+    turtlePenShape("connected");
     list_t* xvals = list_init();
     list_t* dataIndStored = list_init();
     for (int i = 0; i < textLength; i++) {
@@ -294,6 +294,7 @@ int main(int argc, char *argv[]) {
     if (!glfwInit()) {
         return -1;
     }
+    glfwWindowHint(GLFW_SAMPLES, 4); // MSAA (Anti-Aliasing) with 4 samples (must be done before window is created (?))
 
     /* Create a windowed mode window and its OpenGL context */
     window = glfwCreateWindow(960, 720, "textGL", NULL, NULL);

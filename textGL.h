@@ -208,7 +208,6 @@ void renderBezier(double x1, double y1, double x2, double y2, double x3, double 
         turtleGoto(t1 * x1 + t3 * x2 + t2 * x3, t1 * y1 + t3 * y2 + t2 * y3);
     }
     turtleGoto(x3, y3);
-    turtlePenUp();
 }
 
 void renderChar(int index, double x, double y, double size) { // renders a single character
@@ -251,6 +250,7 @@ void write(const unsigned int *text, int textLength, double x, double y, double 
     size /= 175;
     y -= size * 70;
     turtlePenSize(30 * size);
+    turtlePenShape("connected");
     list_t* xvals = list_init();
     list_t* dataIndStored = list_init();
     for (int i = 0; i < textLength; i++) {
