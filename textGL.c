@@ -23,6 +23,7 @@ int textGLInit(class *selfp, const char *filename) { // initialise values, must 
         printf("Error: could not open file %s\n", filename);
         return -1;
     }
+    glfwWindowHint(GLFW_SAMPLES, 4); // MSAA (Anti-Aliasing) with 4 samples (must be done before window is created (?))
 
     list_t *fontDataInit = list_init(); // these start as lists and become int arrays
     list_t *fontPointerInit = list_init();
@@ -83,12 +84,6 @@ int textGLInit(class *selfp, const char *filename) { // initialise values, must 
         int len1 = fontDataInit -> data[firstIndex].i;
         int maximums[4] = {-2147483648, -2147483648, 2147483647, 2147483647}; // for describing bounding box of a character
 
-        // printf("[");
-        // for (int i = firstIndex; i < fontDataInit -> length; i++) {
-        //     printf("%d, ", fontDataInit -> data[i].i);
-        // }
-        // printf("]\n");
-
         /* good programmng alert*/
         #define CHECKS_EMB(ind) \
             if (fontDataInit -> data[ind].i > maximums[0]) {\
@@ -109,8 +104,6 @@ int textGLInit(class *selfp, const char *filename) { // initialise values, must 
             for (int j = 0; j < len2; j++) {
                 firstIndex += 1;
                 if (fontDataInit -> data[firstIndex].i == 140894115) {
-                    // printf("b at %d\n", firstIndex);
-                    // fontDataInit -> data[firstIndex] = (unitype) 140894115;
                     firstIndex += 1;
                     fontDataInit -> data[firstIndex] = (unitype) (fontDataInit -> data[firstIndex].i + 160);
                     fontDataInit -> data[firstIndex + 1] = (unitype) (fontDataInit -> data[firstIndex + 1].i + 100);
@@ -126,8 +119,6 @@ int textGLInit(class *selfp, const char *filename) { // initialise values, must 
                         fontDataInit -> data[firstIndex + 1] = (unitype) (fontDataInit -> data[firstIndex + 1].i + 100);
                         CHECKS_EMB(firstIndex);
                         firstIndex += 1;
-                    } else {
-                        // fontDataInit -> data[firstIndex] = (unitype) 140894115;
                     }
                 } else {
                     fontDataInit -> data[firstIndex] = (unitype) (fontDataInit -> data[firstIndex].i + 160);
@@ -176,10 +167,6 @@ int textGLInit(class *selfp, const char *filename) { // initialise values, must 
         self.supportedCharReference[i] = supportedCharReferenceInit -> data[i].i;
     }
 
-    // list_print(fontDataInit);
-    // list_print(fontPointerInit);
-    // list_print(supportedCharReferenceInit);
-
     printf("%d characters loaded from %s\n", self.charCount, filename);
 
     list_free(fontDataInit);
@@ -199,32 +186,26 @@ void renderBezier(double x1, double y1, double x2, double y2, double x3, double 
     for (int i = 0; i < prez; i++) {
         iter1 -= (double) 1 / prez;
         iter2 += (double) 1 / prez;
-        // printf("%lf %lf\n", iter1, iter2);
         double t1 = iter1 * iter1;
         double t2 = iter2 * iter2;
         double t3 = 2 * iter1 * iter2;
-        // printf("%lf %lf\n", iter1, iter2);
         turtleGoto(t1 * x1 + t3 * x2 + t2 * x3, t1 * y1 + t3 * y2 + t2 * y3);
     }
     turtleGoto(x3, y3);
-    turtlePenUp();
 }
 
 void renderChar(class *selfp, int index, double x, double y, double size) { // renders a single character
     class self = *selfp;
     index += 1;
     int len1 = self.fontData[index];
-    // printf("index: %d\n", index);
-    // printf("oloops: %d\n", len1);
     for (int i = 0; i < len1; i++) {
         index += 1;
-        turtlePenUp();
+        if (turtools.pen == 1)
+            turtlePenUp();
         int len2 = self.fontData[index];
-        // printf("iloops: %d\n", len2);
         for (int j = 0; j < len2; j++) {
             index += 1;
             if (self.fontData[index] == 140894115) { // 140894115 is the b value (reserved)
-                // printf("bezier detected\n");
                 index += 4;
                 if (self.fontData[index + 1] != 140894115) {
                     renderBezier(x + self.fontData[index - 3] * size, y + self.fontData[index - 2] * size, x + self.fontData[index - 1] * size, y + self.fontData[index] * size, x + self.fontData[index + 1] * size, y + self.fontData[index + 2] * size, self.bezierPrez);
@@ -234,8 +215,6 @@ void renderChar(class *selfp, int index, double x, double y, double size) { // r
                 }
             } else {
                 index += 1;
-                // printf("indY: %d\n", self.fontData[index]);
-                // printf("x: %d  y: %d\n", x + self.fontData[index - 1] * size, y + self.fontData[index] * size);
                 turtleGoto(x + self.fontData[index - 1] * size, y + self.fontData[index] * size);
             }
             turtlePenDown();
@@ -327,7 +306,8 @@ int main(int argc, char *argv[]) {
 
     /* initialize turtools */
     turtoolsInit(window, -240, -180, 240, 180);
-    turtlePenShape("circle");
+    turtlePenShape("connected");
+    // turtlePenShape("circle");
     turtlePenColor(0, 0, 0);
     turtlePenPrez(5); // for slight speed improvements at the cost of some prettiness
 
@@ -365,10 +345,17 @@ int main(int argc, char *argv[]) {
         writeString(&obj, "OPQRSTUVWXYZ", turtools.mouseX, turtools.mouseY + writeSize * (20.0 / 35), writeSize, 50);
         writeString(&obj, "abcdefghijklmnopqrstuvwxyz", turtools.mouseX, turtools.mouseY - writeSize * (30.0 / 35), writeSize * (24.0 / 35), 50);
 
+        // writeString(&obj, "L", 0, 0, writeSize, 50);
+
+        // writeString(&obj, "ABCDEFGHIJKLMN", 0, 0 + writeSize * (60.0 / 35), writeSize, 50);
+        // writeString(&obj, "OPQRSTUVWXYZ", 0, 0 + writeSize * (20.0 / 35), writeSize, 50);
+        // writeString(&obj, "abcdefghijklmnopqrstuvwxyz", 0, 0 - writeSize * (30.0 / 35), writeSize * (24.0 / 35), 50);
+
         turtleUpdate(); // update the screen
         end = clock();
         while ((double) (end - start) / CLOCKS_PER_SEC < (1 / (double) tps)) {
             end = clock();
         }
+        // return -1;
     }
 }

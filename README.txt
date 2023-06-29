@@ -5,7 +5,7 @@ gcc textGL.c -L./Windows -lglfw3 -lopengl32 -lgdi32 -lglad -O3 -o textGL.exe
 textGL.exe -f fontBez.tgl
 
 textGL is a simple text renderer that uses openGL to draw text on the screen.
-textGL.c is a showcase of some of the features.
+textGL.c is a showcase of some of the features (use the mouse and scroll wheel)
 The full character set includes all ASCII characters as well as the full european latin alphabet, greek, and cyrillic alphabets, and some miscellaneous characters.
 In order to write those characters, you'll need to turn them into unsigned integers (cast from UTF-8 but reverse the bits but only in bytes that have been set, I should probably include a function to do the conversion)
 
