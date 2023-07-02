@@ -114,8 +114,6 @@ char turtleMouseMid() { // alternate duplicate of above
 void turtoolsInit(GLFWwindow* window, int minX, int minY, int maxX, int maxY) { // initializes the turtletools module
     gladLoadGL();
     glfwMakeContextCurrent(window); // various glfw things
-    // glfwWindowHint(GLFW_SAMPLES, 4); // MSAA (Anti-Aliasing) with 4 samples
-    // glEnable(GL_MULTISAMPLE);
     glEnable(GL_ALPHA);
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
@@ -193,17 +191,20 @@ void turtlePenDown() {
         turtools.pen = 1;
         char changed = 0;
         int len = turtools.penPos -> length;
-        unitype *ren = turtools.penPos -> data;
-        if (ren[len - 9].d != turtools.penshape) {changed = 1;}
-        if (ren[len - 8].d != turtools.x) {changed = 1;}
-        if (ren[len - 7].d != turtools.y) {changed = 1;}
-        if (ren[len - 6].d != turtools.pensize) {changed = 1;}
-        if (ren[len - 5].d != turtools.penr) {changed = 1;}
-        if (ren[len - 4].d != turtools.peng) {changed = 1;}
-        if (ren[len - 3].d != turtools.penb) {changed = 1;}
-        if (ren[len - 2].d != turtools.pena) {changed = 1;}
-        if (ren[len - 1].h != turtools.penshape) {changed = 1;}
-        if (ren[len].d != turtools.circleprez) {changed = 1;}
+        if (len > 0) {
+            unitype *ren = turtools.penPos -> data;
+            if (ren[len - 9].d != turtools.x) {changed = 1;}
+            if (ren[len - 8].d != turtools.y) {changed = 1;}
+            if (ren[len - 7].d != turtools.pensize) {changed = 1;}
+            if (ren[len - 6].d != turtools.penr) {changed = 1;}
+            if (ren[len - 5].d != turtools.peng) {changed = 1;}
+            if (ren[len - 4].d != turtools.penb) {changed = 1;}
+            if (ren[len - 3].d != turtools.pena) {changed = 1;}
+            if (ren[len - 2].h != turtools.penshape) {changed = 1;}
+            if (ren[len - 1].d != turtools.circleprez) {changed = 1;}
+        } else {
+            changed = 1;
+        }
         if (changed == 1) {
             list_append(turtools.penPos, (unitype) turtools.x, 'd');
             list_append(turtools.penPos, (unitype) turtools.y, 'd');
@@ -260,17 +261,20 @@ void turtleGoto(double x, double y) { // moves the turtle to a coordinate
         if (turtools.pen == 1) {
             char changed = 0;
             int len = turtools.penPos -> length;
-            unitype *ren = turtools.penPos -> data;
-            if (ren[len - 9].d != turtools.penshape) {changed = 1;}
-            if (ren[len - 8].d != turtools.x) {changed = 1;}
-            if (ren[len - 7].d != turtools.y) {changed = 1;}
-            if (ren[len - 6].d != turtools.pensize) {changed = 1;}
-            if (ren[len - 5].d != turtools.penr) {changed = 1;}
-            if (ren[len - 4].d != turtools.peng) {changed = 1;}
-            if (ren[len - 3].d != turtools.penb) {changed = 1;}
-            if (ren[len - 2].d != turtools.pena) {changed = 1;}
-            if (ren[len - 1].h != turtools.penshape) {changed = 1;}
-            if (ren[len].d != turtools.circleprez) {changed = 1;}
+            if (len > 0) {
+                unitype *ren = turtools.penPos -> data;
+                if (ren[len - 9].d != turtools.x) {changed = 1;}
+                if (ren[len - 8].d != turtools.y) {changed = 1;}
+                if (ren[len - 7].d != turtools.pensize) {changed = 1;}
+                if (ren[len - 6].d != turtools.penr) {changed = 1;}
+                if (ren[len - 5].d != turtools.peng) {changed = 1;}
+                if (ren[len - 4].d != turtools.penb) {changed = 1;}
+                if (ren[len - 3].d != turtools.pena) {changed = 1;}
+                if (ren[len - 2].h != turtools.penshape) {changed = 1;}
+                if (ren[len - 1].d != turtools.circleprez) {changed = 1;}
+            } else {
+                changed = 1;
+            }
             if (changed == 1) {
                 list_append(turtools.penPos, (unitype) x, 'd');
                 list_append(turtools.penPos, (unitype) y, 'd');
@@ -419,17 +423,11 @@ void turtleUpdate() { // draws the turtle's path on the screen
                     double dir = atan((ren[i + 9].d - ren[i].d) / (ren[i + 1].d - ren[i + 10].d));
                     double sinn = sin(dir + M_PI / 2);
                     double coss = cos(dir + M_PI / 2);
-                    // printf("quad %d: (%lf, %lf), (%lf, %lf), (%lf, %lf), (%lf, %lf)\n", i/9, ren[i].d + ren[i + 2].d * sinn, ren[i + 1].d - ren[i + 2].d * coss, ren[i + 9].d + ren[i + 2].d * sinn, ren[i + 10].d - ren[i + 2].d * coss, ren[i + 9].d - ren[i + 2].d * sinn, ren[i + 10].d + ren[i + 2].d * coss, ren[i].d - ren[i + 2].d * sinn, ren[i + 1].d + ren[i + 2].d * coss);
                     turtleQuad(ren[i].d + ren[i + 2].d * sinn, ren[i + 1].d - ren[i + 2].d * coss, ren[i + 9].d + ren[i + 2].d * sinn, ren[i + 10].d - ren[i + 2].d * coss, ren[i + 9].d - ren[i + 2].d * sinn, ren[i + 10].d + ren[i + 2].d * coss, ren[i].d - ren[i + 2].d * sinn, ren[i + 1].d + ren[i + 2].d * coss, ren[i + 3].d, ren[i + 4].d, ren[i + 5].d, ren[i + 6].d, xfact, yfact);
                     if (ren[i + 7].h == 4 && i + 18 < len && renType[i + 18] == 'd') {
                         double dir2 = atan((ren[i + 18].d - ren[i + 9].d) / (ren[i + 10].d - ren[i + 19].d));
                         double sinn2 = sin(dir2 + M_PI / 2);
                         double coss2 = cos(dir2 + M_PI / 2);
-                        // turtleQuad(ren[i + 9].d + ren[i + 2].d * sinn, ren[i + 10].d - ren[i + 2].d * coss, ren[i + 9].d - ren[i + 2].d * sinn, ren[i + 10].d + ren[i + 2].d * coss, 0, 0, 0, 0, ren[i + 3].d, ren[i + 4].d, ren[i + 5].d, ren[i + 6].d, xfact, yfact);
-                        // turtleQuad(100, 100, 100, 100, ren[i + 9].d - ren[i + 11].d * sinn2, ren[i + 10].d + ren[i + 11].d * coss2, ren[i + 3].d, ren[i + 9].d + ren[i + 11].d * sinn2, ren[i + 10].d - ren[i + 11].d * coss2, ren[i + 4].d, ren[i + 5].d, ren[i + 6].d, xfact, yfact);
-                        // turtleQuad(ren[i + 9].d + ren[i + 2].d * sinn, ren[i + 10].d - ren[i + 2].d * coss, ren[i + 9].d - ren[i + 2].d * sinn, ren[i + 10].d + ren[i + 2].d * coss, ren[i + 9].d - ren[i + 11].d * sinn2, ren[i + 10].d + ren[i + 11].d * coss2, ren[i + 9].d + ren[i + 11].d * sinn2, ren[i + 10].d - ren[i + 11].d * coss2, ren[i + 3].d, ren[i + 4].d, ren[i + 5].d, ren[i + 6].d, xfact, yfact);
-                        // printf("dir: %lf, dir2: %lf\n", dir * 180 / M_PI, dir2 * 180 / M_PI);
-                        // printf("triangle %d: (%lf, %lf), (%lf, %lf), (%lf, %lf)\n", i/9, ren[i + 9].d + ren[i + 2].d * sinn, ren[i + 10].d - ren[i + 2].d * coss, ren[i + 9].d - ren[i + 2].d * sinn, ren[i + 10].d + ren[i + 2].d * coss, ren[i + 9].d + ren[i + 11].d * sinn2, ren[i + 10].d - ren[i + 11].d * coss2);
                         turtleTriangle(ren[i + 9].d + ren[i + 2].d * sinn, ren[i + 10].d - ren[i + 2].d * coss, ren[i + 9].d - ren[i + 2].d * sinn, ren[i + 10].d + ren[i + 2].d * coss, ren[i + 9].d + ren[i + 11].d * sinn2, ren[i + 10].d - ren[i + 11].d * coss2, ren[i + 3].d, ren[i + 4].d, ren[i + 5].d, ren[i + 6].d, xfact, yfact);
                         turtleTriangle(ren[i + 9].d + ren[i + 2].d * sinn, ren[i + 10].d - ren[i + 2].d * coss, ren[i + 9].d - ren[i + 2].d * sinn, ren[i + 10].d + ren[i + 2].d * coss, ren[i + 9].d - ren[i + 11].d * sinn2, ren[i + 10].d + ren[i + 11].d * coss2, ren[i + 3].d, ren[i + 4].d, ren[i + 5].d, ren[i + 6].d, xfact, yfact);
                     }
@@ -456,4 +454,13 @@ void turtleMainLoop() { // keeps the window open
     while (turtools.close == 0) {
         turtleUpdate();
     }
+}
+void turtoolsFree() {
+    list_free(turtools.keyPressed);
+    list_free(turtools.penPos);
+    list_free(turtools.penPosOld);
+    free(turtools.screenbounds);
+    free(turtools.lastscreenbounds);
+    free(turtools.initscreenbounds);
+    free(turtools.bounds);
 }

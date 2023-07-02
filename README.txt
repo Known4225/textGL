@@ -23,8 +23,9 @@ use writeString in most cases, but if you need to write some greek letters you'l
 
 
 Use on linux:
-you'll need to install glad and glfw and compile the libraries (glad and glfw).
-once you've obtained the libglad.a and libglfw3.a files, 
-put them in a folder called "Linux" and use
 
-gcc nerwork.c -L./Linux -lglfw3 -ldl -lm -lX11 -lglad -lGL -lGLU -lpthread -O3 -o nerwork.o
+gcc textGL.c -L./Linux -lglfw3 -ldl -lm -lX11 -lglad -lGL -lGLU -lpthread -O3 -o textGL.o
+
+if it doesn't work you'll probably need to install glad and glfw and compile the libraries (glad and glfw).
+once you've obtained the libglad.a and libglfw3.a files, 
+replace the ones in the folder called "Linux" and recompile
