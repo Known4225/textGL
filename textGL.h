@@ -1,5 +1,7 @@
 /* textGL uses openGL to render text on the screen */
 
+#ifndef TEXTGLSET
+#define TEXTGLSET 1 // include guard
 #include "include/turtle.h"
 
 typedef struct { // textGL variables
@@ -13,10 +15,7 @@ typedef struct { // textGL variables
 textGL textGLRender;
 
 int textGLInit(GLFWwindow* window, const char *filename) { // initialise values, must supply a font file (tgl)
-    turtoolsInit(window, -240, -180, 240, 180);
-    turtlePenShape("circle");
     turtlePenColor(0, 0, 0);
-    
     textGLRender.bezierPrez = 10;
 
     /* load file */
@@ -55,10 +54,27 @@ int textGLInit(GLFWwindow* window, const char *filename) { // initialise values,
             }
             parsedInt[strptr - oldptr] = '\0';
             if (oldptr == 0) {
-                fontPar = 0; // parse as unicode char (advanced tactic maps every unicode character to an unsigned int using big endian (must be UTF-8))
-                for (int i = 0; i < strlen((char *) parsedInt); i++) {
-                    fontPar += (unsigned int) parsedInt[i] << (i * 8);
+                fontPar = 0; // parse as unicode char (basically just take the multibyte utf-8 encoding of the character and literal cast it to an unsigned int (maximum of 4 bytes per character in utf-8 (?)))
+                if (strlen(parsedInt) > 4) {
+                    printf("Error: character at line %d too long for unsigned int\n", supportedCharReferenceInit -> length + 1);
                 }
+                for (int i = strlen(parsedInt); i > 0; i--) {
+                    int abri = (strlen(parsedInt) - i);
+                    fontPar += (unsigned int) parsedInt[abri] << ((i - 1) * 8);
+                }
+                // printf("line: %d bytes: %d value: %u\n", supportedCharReferenceInit -> length + 1, strlen(parsedInt), fontPar);
+                // printf("    binary: ");
+                // for (int i = 0; i < strlen(parsedInt); i++) {
+                //     for (int j = 0; j < 8; j++) {
+                //         unsigned char mask = 128 >> j;
+                //         if (parsedInt[i] & mask) {
+                //             printf("1");
+                //         } else {
+                //             printf("0");
+                //         }
+                //     }
+                // }
+                // printf("\n");
                 if (fontPar == 0) { // exception for the comma character
                     fontPar = 44;
                 }
@@ -67,9 +83,8 @@ int textGLInit(GLFWwindow* window, const char *filename) { // initialise values,
                 firstIndex = fontDataInit -> length;
                 list_append(fontDataInit, (unitype) 1, 'i');
             } else {
-                sscanf((char *) parsedInt, "%i", &fontPar); // parse as integer
-                if (strcmp((char *) parsedInt, "b") == 0) {
-                    // printf("b found, fontPar: %d\n", fontPar);
+                sscanf(parsedInt, "%u", &fontPar); // parse as integer
+                if (strcmp(parsedInt, "b") == 0) {
                     list_append(fontDataInit, (unitype) 140894115, 'i'); // all b's get converted to the integer 140894115 (chosen semi-randomly)
                 } else {
                     list_append(fontDataInit, (unitype) (int) (fontPar), 'i'); // fontPar will double count when it encounters a b (idk why) so if there's a b we ignore the second fontPar (which is a duplicate of the previous one)
@@ -84,13 +99,7 @@ int textGLInit(GLFWwindow* window, const char *filename) { // initialise values,
         firstIndex += 1; // using firstIndex as iteration variable
         int len1 = fontDataInit -> data[firstIndex].i;
         int maximums[4] = {-2147483648, -2147483648, 2147483647, 2147483647}; // for describing bounding box of a character
-
-        // printf("[");
-        // for (int i = firstIndex; i < fontDataInit -> length; i++) {
-        //     printf("%d, ", fontDataInit -> data[i].i);
-        // }
-        // printf("]\n");
-
+        
         /* good programmng alert*/
         #define CHECKS_EMB(ind) \
             if (fontDataInit -> data[ind].i > maximums[0]) {\
@@ -111,8 +120,6 @@ int textGLInit(GLFWwindow* window, const char *filename) { // initialise values,
             for (int j = 0; j < len2; j++) {
                 firstIndex += 1;
                 if (fontDataInit -> data[firstIndex].i == 140894115) {
-                    // printf("b at %d\n", firstIndex);
-                    // fontDataInit -> data[firstIndex] = (unitype) 140894115;
                     firstIndex += 1;
                     fontDataInit -> data[firstIndex] = (unitype) (fontDataInit -> data[firstIndex].i + 160);
                     fontDataInit -> data[firstIndex + 1] = (unitype) (fontDataInit -> data[firstIndex + 1].i + 100);
@@ -128,8 +135,6 @@ int textGLInit(GLFWwindow* window, const char *filename) { // initialise values,
                         fontDataInit -> data[firstIndex + 1] = (unitype) (fontDataInit -> data[firstIndex + 1].i + 100);
                         CHECKS_EMB(firstIndex);
                         firstIndex += 1;
-                    } else {
-                        // fontDataInit -> data[firstIndex] = (unitype) 140894115;
                     }
                 } else {
                     fontDataInit -> data[firstIndex] = (unitype) (fontDataInit -> data[firstIndex].i + 160);
@@ -178,10 +183,6 @@ int textGLInit(GLFWwindow* window, const char *filename) { // initialise values,
         textGLRender.supportedCharReference[i] = supportedCharReferenceInit -> data[i].i;
     }
 
-    // list_print(fontDataInit);
-    // list_print(fontPointerInit);
-    // list_print(supportedCharReferenceInit);
-
     printf("%d characters loaded from %s\n", textGLRender.charCount, filename);
 
     list_free(fontDataInit);
@@ -200,11 +201,9 @@ void renderBezier(double x1, double y1, double x2, double y2, double x3, double 
     for (int i = 0; i < prez; i++) {
         iter1 -= (double) 1 / prez;
         iter2 += (double) 1 / prez;
-        // printf("%lf %lf\n", iter1, iter2);
         double t1 = iter1 * iter1;
         double t2 = iter2 * iter2;
         double t3 = 2 * iter1 * iter2;
-        // printf("%lf %lf\n", iter1, iter2);
         turtleGoto(t1 * x1 + t3 * x2 + t2 * x3, t1 * y1 + t3 * y2 + t2 * y3);
     }
     turtleGoto(x3, y3);
@@ -213,17 +212,14 @@ void renderBezier(double x1, double y1, double x2, double y2, double x3, double 
 void renderChar(int index, double x, double y, double size) { // renders a single character
     index += 1;
     int len1 = textGLRender.fontData[index];
-    // printf("index: %d\n", index);
-    // printf("oloops: %d\n", len1);
     for (int i = 0; i < len1; i++) {
         index += 1;
-        turtlePenUp();
+        if (turtools.pen == 1)
+            turtlePenUp();
         int len2 = textGLRender.fontData[index];
-        // printf("iloops: %d\n", len2);
         for (int j = 0; j < len2; j++) {
             index += 1;
             if (textGLRender.fontData[index] == 140894115) { // 140894115 is the b value (reserved)
-                // printf("bezier detected\n");
                 index += 4;
                 if (textGLRender.fontData[index + 1] != 140894115) {
                     renderBezier(x + textGLRender.fontData[index - 3] * size, y + textGLRender.fontData[index - 2] * size, x + textGLRender.fontData[index - 1] * size, y + textGLRender.fontData[index] * size, x + textGLRender.fontData[index + 1] * size, y + textGLRender.fontData[index + 2] * size, textGLRender.bezierPrez);
@@ -233,8 +229,6 @@ void renderChar(int index, double x, double y, double size) { // renders a singl
                 }
             } else {
                 index += 1;
-                // printf("indY: %d\n", textGLRender.fontData[index]);
-                // printf("x: %d  y: %d\n", x + textGLRender.fontData[index - 1] * size, y + textGLRender.fontData[index] * size);
                 turtleGoto(x + textGLRender.fontData[index - 1] * size, y + textGLRender.fontData[index] * size);
             }
             turtlePenDown();
@@ -244,13 +238,42 @@ void renderChar(int index, double x, double y, double size) { // renders a singl
     // no variables in textGLRender are changed
 }
 
-void write(const unsigned int *text, int textLength, double x, double y, double size, double align) {
+double textGLGetLength(const unsigned int *text, int textLength, double size) { // gets the length of a string in pixels on the screen
+    size /= 175;
+    double xTrack = 0;
+    for (int i = 0; i < textLength; i++) {
+        int currentDataAddress = 0;
+        for (int j = 0; j < textGLRender.charCount; j++) { // change to hashmap later
+            if (textGLRender.supportedCharReference[j] == text[i]) {
+                currentDataAddress = j;
+                break;
+            }
+        }
+        xTrack += (textGLRender.fontData[textGLRender.fontPointer[currentDataAddress + 1] - 4] + 40) * size;
+    }
+    xTrack -= 40 * size;
+    return xTrack;
+}
+
+double textGLGetStringLength(const char *str, int textLength, double size) { // gets the length of a string in pixels on the screen
+    int len = strlen(str);
+    unsigned int converted[len];
+    for (int i = 0; i < len; i++) {
+        converted[i] = (unsigned int) str[i];
+    }
+    return textGLGetLength(converted, len, size);
+}
+
+void textGLWrite(const unsigned int *text, int textLength, double x, double y, double size, double align) { // writes to the screen
+    char saveShape = turtools.penshape;
+    double saveSize = turtools.pensize;
     textGLRender.bezierPrez = (int) ceil(sqrt(size * 1)); // change the 1 for higher or lower bezier precision
     double xTrack = x;
     size /= 175;
     y -= size * 70;
-    turtlePenSize(30 * size);
-    turtlePenShape("connected");
+    turtlePenSize(40 * size);
+    // turtlePenShape("connected"); // fast
+    turtlePenShape("circle"); // pretty
     list_t* xvals = list_init();
     list_t* dataIndStored = list_init();
     for (int i = 0; i < textLength; i++) {
@@ -271,16 +294,64 @@ void write(const unsigned int *text, int textLength, double x, double y, double 
     }
     list_free(dataIndStored);
     list_free(xvals);
+    turtools.penshape = saveShape; // restore the shape and size before the write
+    turtools.pensize = saveSize;
     // no variables in textGLRender are changed
 }
 
-/* transfer functions */
-
-void writeString(const char *str, double x, double y, double size, double align) { // wrapper function for writing strings easier
+void textGLWriteString(const char *str, double x, double y, double size, double align) { // wrapper function for writing strings easier
     int len = strlen(str);
     unsigned int converted[len];
     for (int i = 0; i < len; i++) {
         converted[i] = (unsigned int) str[i];
     }
-    write(converted, len, x, y, size, align);
+    textGLWrite(converted, len, x, y, size, align);
 }
+
+void textGLWriteUnicode(const unsigned char *str, double x, double y, double size, double align) { // wrapper function for unicode strings (UTF-8, u8"Hello World")
+    int len = strlen(str);
+    // printf("length: %d\n", len);
+    unsigned int converted[len]; // max number of characters in a utf-8 string of length len
+    int byteLength;
+    int i = 0;
+    int next = 0;
+    while (i < len) {
+        byteLength = 0;
+        for (int j = 0; j < 8; j++) {
+            unsigned char mask = 128 >> j;
+            if (str[i] & mask) {
+                byteLength += 1;
+            } else {
+                j = 8; // end loop
+            }
+        }
+        // printf("byte length: %d\n", byteLength);
+        if (byteLength == 0) { // case: ASCII character
+            converted[next] = (unsigned int) str[i];
+            byteLength = 1;
+        } else { // case: multi-byte character
+            unsigned int convert = 0;
+            for (int k = 0; k < byteLength; k++) {
+                convert = convert << 8;
+                convert += (unsigned int) str[i + k];
+            }
+            converted[next] = convert;
+            // printf("convert: %u\n", convert);
+            // printf("binary: ");
+            // for (int j = 0; j < 32; j++) {
+            //     unsigned int mask = 0b10000000000000000000000000000000 >> j;
+            //     if (convert & mask) {
+            //         printf("1");
+            //     } else {
+            //         printf("0");
+            //     }
+            // }
+            // printf("\n");
+        }
+        i += byteLength;
+        next += 1;
+    }
+    // printf("length: %d\n", next);
+    textGLWrite(converted, next, x, y, size, align);
+}
+#endif

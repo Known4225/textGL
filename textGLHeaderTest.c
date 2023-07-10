@@ -18,6 +18,8 @@ int main(int argc, char *argv[]) {
     glfwSetWindowSizeLimits(window, GLFW_DONT_CARE, GLFW_DONT_CARE, 960, 720);
     gladLoadGL();
 
+    /* initialise turtle */
+    turtoolsInit(window, -320, -180, 320, 180);
     /* initialise textGL */
     textGLInit(window, "fontBez.tgl");
 
@@ -39,9 +41,9 @@ int main(int argc, char *argv[]) {
         if (mouseWheel < 0) {
             writeSize /= 1.1;
         }
-        writeString("ABCDEFGHIJKLMN", turtools.mouseX, turtools.mouseY + writeSize * (60.0 / 35), writeSize, 50);
-        writeString("OPQRSTUVWXYZ", turtools.mouseX, turtools.mouseY + writeSize * (20.0 / 35), writeSize, 50);
-        writeString("abcdefghijklmnopqrstuvwxyz", turtools.mouseX, turtools.mouseY - writeSize * (30.0 / 35), writeSize * (24.0 / 35), 50);
+        textGLWriteUnicode("ABCDEFGHIJKLMN", turtools.mouseX, turtools.mouseY + writeSize * (60.0 / 35), writeSize, 50);
+        textGLWriteUnicode("OPQRSTUVWXYZ", turtools.mouseX, turtools.mouseY + writeSize * (20.0 / 35), writeSize, 50);
+        textGLWriteUnicode("abcdefghijklmnopqrstuvwxyz", turtools.mouseX, turtools.mouseY - writeSize * (30.0 / 35), writeSize * (24.0 / 35), 50);
 
         turtleUpdate(); // update the screen
         end = clock();

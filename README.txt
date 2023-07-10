@@ -19,7 +19,7 @@ write(const unsigned int *text, int textLength, double x, double y, double size,
 to change colour of the text, do turtlePenColor(r, g, b) before a write call
 the r g and b values are doubles from 0 to 255
 
-use writeString in most cases, but if you need to write some greek letters you'll need to use write with the weird unsigned int encoding or whatever. I should include at least a reference of characters to their number and i guess i will when i get around to it
+use textGLWriteString in most cases, but if you need to access the expanded character set you can use textGLWriteUnicode
 
 
 Use on linux:
